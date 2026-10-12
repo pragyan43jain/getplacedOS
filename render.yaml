@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: getplaced-py
+    env: docker
+    dockerfilePath: backend-Py/Dockerfile
+    dockerContext: backend-Py
+    plan: free
+    region: oregon
+    healthCheckPath: /api/company/featured
+    envVars:
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: RAPIDAPI_KEY
+        sync: false
+      - key: ADZUNA_API_ID
+        sync: false
+      - key: ADZUNA_API_KEY
+        sync: false
