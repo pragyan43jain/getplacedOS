@@ -38,6 +38,11 @@ const allowedOrigins = [
   "http://127.0.0.1:5173",
   "https://dev-clash-flax.vercel.app",
   "https://dev-clash-hackathon.vercel.app",
+  // Vercel deployment URLs — update with your actual domain after first deploy
+  "https://getplacedos.vercel.app",
+  "https://getplaced.vercel.app",
+  // Allow all vercel.app preview deployments
+  ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
 ]
 
 app.use(
