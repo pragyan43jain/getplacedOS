@@ -5,7 +5,9 @@
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "distDir": "dist",
+        "installCommand": "npm install --legacy-peer-deps",
+        "buildCommand": "npm run build"
       }
     },
     {
@@ -26,11 +28,20 @@
       "dest": "/backend-Node/index.js"
     },
     {
-      "handle": "filesystem"
+      "src": "/assets/(.*)",
+      "dest": "/frontend/assets/$1"
+    },
+    {
+      "src": "/(favicon\\..*|vite\\.svg|robots\\.txt|.*\\.(?:png|jpg|jpeg|gif|svg|ico|json|woff2?|ttf|eot))",
+      "dest": "/frontend/$1"
+    },
+    {
+      "src": "/frontend/(.*)",
+      "dest": "/frontend/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/frontend/dist/index.html"
+      "dest": "/frontend/index.html"
     }
   ]
 }
