@@ -27,6 +27,7 @@ import {
   Compass,
 } from "lucide-react";
 import { leetcodeService } from "@/services/leetcodeService";
+import LeetCodeConnectCard from "@/components/leetcode/LeetCodeConnectCard";
 import LeetCodeSubmissionAnalysis from "@/components/leetcode/LeetCodeSubmissionAnalysis";
 import GpCard from "@/components/gp/GpCard";
 import GpBadge from "@/components/gp/GpBadge";
@@ -854,10 +855,14 @@ export default function CodingArena() {
           </div>
         )}
 
-        {/* TAB 4: SUBMISSIONS ACTIVITY */}
+        {/* TAB 3: SUBMISSIONS & LEETCODE ANALYTICS */}
         {workspaceTab === "submissions" && (
           <section className="gsap-reveal space-y-6">
-            <LeetCodeSubmissionAnalysis />
+            <LeetCodeConnectCard
+              onProfileUpdate={(p) => {
+                setLeetcodeProfile(p);
+              }}
+            />
           </section>
         )}
 

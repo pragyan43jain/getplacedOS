@@ -841,7 +841,7 @@ export default function Profile() {
                 </div>
 
                 <Link
-                  to="/app/coding"
+                  to="/app/coding?tab=submissions"
                   className="inline-flex items-center justify-between text-xs font-semibold text-[#6E44FF] hover:underline pt-1 border-t border-[#E2DEEC]"
                 >
                   <span>{isLeetcodeConnected ? "Open Coding Workspace & Analytics" : "Connect LeetCode Profile"}</span>

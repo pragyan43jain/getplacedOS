@@ -340,10 +340,12 @@ export default function GlobalCoachSidekick() {
   };
 
   const handleSendMessage = async (textToSend) => {
-    const text = textToSend || inputMessage;
+    const isDirect = typeof textToSend === "string" && textToSend.trim().length > 0;
+    const text = isDirect ? textToSend : inputMessage;
     if (!text || !text.trim() || sending) return;
 
     const trimmed = text.trim();
+    const previousInput = inputMessage;
     const tempUserMsg = {
       sender: "user",
       role: "user",
@@ -353,14 +355,16 @@ export default function GlobalCoachSidekick() {
     };
 
     setMessages((prev) => [...prev, tempUserMsg]);
-    setInputMessage("");
+    if (!isDirect) {
+      setInputMessage("");
+    }
     setSending(true);
 
     try {
       const res = await axios.post(
         `${NODE_API_URL}/api/coach/message`,
         { message: trimmed, path: location.pathname },
-        { withCredentials: true }
+        { withCredentials: true, timeout: 35000 }
       );
 
       if (res.data?.messages) {
@@ -374,7 +378,7 @@ export default function GlobalCoachSidekick() {
           metadata: {
             toolCalls: res.data.toolCalls || res.data.toolExecutions || [],
             actionCards: res.data.actionCards || (res.data.actionCard ? [res.data.actionCard] : []),
-            modelUsed: res.data.modelUsed || "Gemini 2.5 Pro",
+            modelUsed: res.data.modelUsed || "Gemini 3.5 Flash",
           },
           timestamp: new Date().toISOString(),
         };
@@ -385,19 +389,25 @@ export default function GlobalCoachSidekick() {
         setChips(res.data.chips);
       }
     } catch (err) {
-      console.error("Could not send message to coach:", err);
+      console.error("Could not send message to coach sidekick:", err);
+      if (!isDirect) {
+        setInputMessage(previousInput);
+      }
+      const errDetail = err.response?.data?.message || err.message || "Request timed out";
       setMessages((prev) => [
         ...prev,
         {
           sender: "coach",
           role: "assistant",
-          text: "I encountered an error connecting with the platform. Please try again in a moment.",
-          content: "I encountered an error connecting with the platform. Please try again in a moment.",
+          text: `⚠️ **Unable to get a response right now.** (${errDetail})\n\nPlease check your connection and try again.`,
+          content: `⚠️ **Unable to get a response right now.** (${errDetail})\n\nPlease check your connection and try again.`,
           timestamp: new Date().toISOString(),
+          metadata: { isError: true },
         },
       ]);
     } finally {
       setSending(false);
+      setTimeout(() => scrollToBottom(), 50);
     }
   };
 
@@ -745,13 +755,21 @@ export default function GlobalCoachSidekick() {
             </button>
 
             {/* Text Input */}
-            <input
-              type="text"
+            <textarea
+              rows={1}
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  if (!sending && inputMessage.trim()) {
+                    handleSendMessage();
+                  }
+                }
+              }}
               placeholder="Ask coach anything about requirements, roadmap, gaps, cutoffs..."
               disabled={sending}
-              className="flex-1 bg-[#F8F8F5] focus:bg-white border border-[#E2DEEC] focus:border-[#6E44FF] focus:ring-2 focus:ring-[#6E44FF]/15 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-[#17103D] placeholder-[#77718A] font-sans transition-all"
+              className="flex-1 bg-[#F8F8F5] focus:bg-white border border-[#E2DEEC] focus:border-[#6E44FF] focus:ring-2 focus:ring-[#6E44FF]/15 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-[#17103D] placeholder-[#77718A] font-sans transition-all resize-none min-h-[38px] max-h-28 leading-relaxed"
             />
 
             {/* Send Button */}

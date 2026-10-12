@@ -78,10 +78,11 @@ export function getActiveAiClient(injectedClient = null) {
 
 // Model Cascade for high resilience and quota management
 const MODEL_CASCADE = [
-  "gemini-3.7-flash",
   "gemini-3.5-flash",
+  "gemini-3.6-flash",
   "gemini-3.5-flash-lite",
-  "gemini-3.1-flash-lite",
+  "gemini-flash-latest",
+  "gemini-3.7-flash",
 ];
 
 function positiveInteger(value, fallback) {

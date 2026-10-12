@@ -15,6 +15,7 @@ import {
 } from "../controllers/userController.js"
 import { protect } from "../middlewares/authMiddleware.js"
 import dotenv from "dotenv"
+import { protect } from "../middlewares/authMiddleware.js"
 dotenv.config()
 
 const router = express.Router()

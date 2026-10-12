@@ -368,15 +368,41 @@ export default function CareerCoach() {
     window.speechSynthesis.speak(utterance);
   };
 
+  const handleSkip = async (mode = "step") => {
+    if (sending) return;
+    if (mode === "all") {
+      await handleSendMessage("Skip all to dashboard");
+    } else {
+      await handleSendMessage("Skip this step for now");
+    }
+  };
+
   const handleSendMessage = async (textToSend) => {
-    const text = textToSend || inputMessage;
+    const isDirectText = typeof textToSend === "string" && textToSend.trim().length > 0;
+    const text = isDirectText ? textToSend : inputMessage;
     if (!text || !text.trim() || sending) return;
 
     const trimmed = text.trim();
+    const previousInput = inputMessage;
 
-    const tempUserMsg = { sender: "user", text: trimmed, timestamp: new Date() };
+    // Normalize skip commands typed by the user
+    let messagePayload = trimmed;
+    if (trimmed.toLowerCase() === "skip" || trimmed.toLowerCase() === "skip step") {
+      messagePayload = "Skip this step for now";
+    } else if (trimmed.toLowerCase() === "skip all") {
+      messagePayload = "Skip all to dashboard";
+    }
+
+    const tempUserMsg = {
+      sender: "user",
+      text: trimmed,
+      timestamp: new Date().toISOString(),
+    };
+
     setMessages((prev) => [...prev, tempUserMsg]);
-    setInputMessage("");
+    if (!isDirectText) {
+      setInputMessage("");
+    }
     setChips([]);
     setMessageError("");
     setSending(true);
@@ -385,8 +411,8 @@ export default function CareerCoach() {
     try {
       const res = await axios.post(
         `${NODE_API_URL}/api/coach/message`,
-        { message: trimmed, mode },
-        { withCredentials: true }
+        { message: messagePayload, mode },
+        { withCredentials: true, timeout: 35000 }
       );
       if (res.data) {
         syncSessionData(res.data);
@@ -408,8 +434,10 @@ export default function CareerCoach() {
       } catch (syncError) {
         console.warn("Could not resync coach session after message failure:", syncError.message);
       }
+
     } finally {
       setSending(false);
+      setTimeout(() => scrollToBottom(), 50);
     }
   };
 
@@ -682,7 +710,7 @@ export default function CareerCoach() {
             {isOnboardingMode && (
               <button
                 type="button"
-                onClick={() => handleSendMessage("Skip this step for now")}
+                onClick={() => handleSkip("step")}
                 title="Skip Current Calibration Step"
                 className="p-2 sm:px-3 sm:py-1.5 rounded-xl text-xs font-bold text-[#0D0431] border-2 border-[#0D0431] bg-white hover:bg-[#FEDF6A] transition-all shadow-[2px_2px_0_0_#0D0431] flex items-center gap-1.5 font-mono cursor-pointer"
               >
@@ -982,7 +1010,9 @@ export default function CareerCoach() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                handleSendMessage();
+                if (!sending && inputMessage.trim()) {
+                  handleSendMessage();
+                }
               }}
               className="p-3.5 bg-white border-t-2 border-[#0D0431] flex items-center gap-2.5"
             >
@@ -999,8 +1029,8 @@ export default function CareerCoach() {
                 {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
               </button>
 
-              <input
-                type="text"
+              <textarea
+                rows={1}
                 placeholder={
                   isOnboardingMode
                     ? "Answer coach questions, type your details, or click a chip / type 'skip' to skip..."
@@ -1008,8 +1038,16 @@ export default function CareerCoach() {
                 }
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    if (!sending && inputMessage.trim()) {
+                      handleSendMessage();
+                    }
+                  }
+                }}
                 disabled={sending}
-                className="flex-1 bg-[#FEF9CF] text-sm sm:text-base text-[#0D0431] placeholder-[#0D0431]/50 px-4 py-2.5 sm:py-3 rounded-2xl border-2 border-[#0D0431] shadow-[3px_3px_0_0_#0D0431] focus:outline-none focus:bg-white transition-all font-sans font-medium"
+                className="flex-1 bg-[#FEF9CF] text-sm sm:text-base text-[#0D0431] placeholder-[#0D0431]/50 px-4 py-2.5 sm:py-3 rounded-2xl border-2 border-[#0D0431] shadow-[3px_3px_0_0_#0D0431] focus:outline-none focus:bg-white transition-all font-sans font-medium resize-none min-h-[46px] max-h-32 leading-relaxed"
               />
 
               <button
@@ -1317,7 +1355,7 @@ export default function CareerCoach() {
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => handleSendMessage("Skip this step for now")}
+                        onClick={() => handleSkip("step")}
                         className="flex-1 py-2 px-2.5 rounded-xl bg-white hover:bg-[#FEDF6A] text-xs font-mono font-bold text-[#0D0431] border-2 border-[#0D0431] shadow-[2px_2px_0_0_#0D0431] transition-all cursor-pointer text-center"
                       >
                         Skip Step ⏭
@@ -1325,7 +1363,7 @@ export default function CareerCoach() {
 
                       <button
                         type="button"
-                        onClick={handleFinalizeAndEnterDashboard}
+                        onClick={() => handleSkip("all")}
                         className="flex-1 py-2 px-2.5 rounded-xl bg-[#FAF7EE] hover:bg-[#FFC5B7] text-xs font-mono font-bold text-[#0D0431] border-2 border-[#0D0431] shadow-[2px_2px_0_0_#0D0431] transition-all cursor-pointer text-center"
                       >
                         Skip All
