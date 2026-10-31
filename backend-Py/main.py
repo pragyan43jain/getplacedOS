@@ -65,6 +65,10 @@ app = FastAPI(title="getPlaced AI & Intelligence Platform API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        origin.strip()
+        for origin in os.getenv("CORS_ORIGINS", "https://getplaced-sandy.vercel.app").split(",")
+        if origin.strip()
+    ] + [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:3000",
@@ -81,6 +85,11 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["*"],
 )
+
+@app.get("/health")
+async def health():
+    return {"status": "ok", "service": "getplaced-python"}
+
 
 @app.on_event("startup")
 async def startup_event():
