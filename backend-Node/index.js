@@ -26,9 +26,11 @@ const PORT = process.env.PORT || 3000
 import axios from "axios"
 import connectDB from "./config/db.js"
 
-connectDB().then(() => {
-  seedJobsIfNeeded()
-})
+connectDB()
+  .then(() => seedJobsIfNeeded())
+  .catch((error) => {
+    console.error(`Initial MongoDB connection failed: ${error.message}`)
+  })
 
 const app = express()
 
@@ -63,6 +65,16 @@ app.use(
 app.use(express.json())
 
 app.use(cookieParser())
+
+// Do not let Mongoose buffer requests while Atlas is still connecting.
+app.use(async (req, res, next) => {
+  try {
+    await connectDB()
+    next()
+  } catch (error) {
+    res.status(503).json({ message: "Database is temporarily unavailable. Please retry." })
+  }
+})
 
 // Mount Core & Feature Routes
 app.use("/api/users", userRoutes)
