@@ -1,5 +1,5 @@
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation } from 'react-router-dom'
 import LandingPage from '../pages/LandingPage'
 import Layout from './Layout'
 import AnalyzeResume from '@/pages/AnalyzeResume'
@@ -30,6 +30,23 @@ import CanIApply from '@/pages/CanIApply'
 import WhichRoleFitsMe from '@/pages/WhichRoleFitsMe'
 import GpBadge from '@/components/gp/GpBadge'
 import GpButton, { GpArrow } from '@/components/gp/GpButton'
+
+function ProtectedAppLayout() {
+  const location = useLocation()
+  let hasToken = false
+  try {
+    hasToken = Boolean(localStorage.getItem('getplaced_token'))
+  } catch (error) {
+    // Private browsing or storage restrictions should send the visitor through sign-in.
+  }
+
+  if (!hasToken) {
+    const returnTo = `${location.pathname}${location.search}`
+    return <Navigate to={`/login?redirect=${encodeURIComponent(returnTo)}`} replace />
+  }
+
+  return <Layout />
+}
 
 function TermsPage() {
   return (
@@ -148,7 +165,7 @@ function Routings() {
           <Route path="/terms" element={<TermsPage />} />
 
           {/* Authenticated Dashboard App Shell */}
-          <Route path="/app" element={<Layout />}>
+          <Route path="/app" element={<ProtectedAppLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="dsa" element={<DSAContent />} />
             <Route path="library" element={<DSAContent defaultTab="sheets" />} />
