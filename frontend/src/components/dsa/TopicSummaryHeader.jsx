@@ -17,6 +17,9 @@ import {
 } from "lucide-react";
 import GpBadge from "@/components/gp/GpBadge";
 
+const hasFiniteNumber = (value) =>
+  value !== null && value !== undefined && Number.isFinite(Number(value));
+
 export default function TopicSummaryHeader({ dsaData, targetCompany = "", targetJobRole = "" }) {
   const summary = dsaData?.summary || {};
   const leetcodeUser = dsaData?.leetcodeUser;
@@ -64,14 +67,14 @@ export default function TopicSummaryHeader({ dsaData, targetCompany = "", target
           <div className="flex items-baseline gap-3">
             <div className="flex items-baseline gap-1.5">
               <span className="text-5xl md:text-6xl font-black font-heading tracking-tight text-[#0D0431]">
-                {overallLevel !== null ? overallLevel.toFixed(1) : "—"}
+                {hasFiniteNumber(overallLevel) ? Number(overallLevel).toFixed(1) : "—"}
               </span>
               <span className="text-sm md:text-base font-mono font-bold text-[#0D0431]/60">/ 10.0</span>
             </div>
 
             <div className="hidden sm:flex flex-col text-xs text-[#0D0431] pl-4 border-l-2 border-[#0D0431]/20 space-y-0.5 font-mono font-semibold">
               <div className="text-[#0D0431] font-black">
-                {overallScore !== null ? `${overallScore}/100 Placement Score` : "Uncalculated"}
+                {hasFiniteNumber(overallScore) ? `${overallScore}/100 Placement Score` : "Uncalculated"}
               </div>
               <div className="text-[11px] text-[#0D0431]/70">
                 {analyzedCount} of {totalCount} topics evaluated ({coveragePercent}%)
@@ -160,7 +163,7 @@ export default function TopicSummaryHeader({ dsaData, targetCompany = "", target
             </span>
             {strongest && (
               <span className="text-[10px] font-mono text-[#0D0431] font-black px-2 py-0.5 rounded-full bg-white border border-[#0D0431]">
-                {strongest.currentLevel !== null ? `${strongest.currentLevel.toFixed(1)}/10` : ""}
+                {hasFiniteNumber(strongest.currentLevel) ? `${Number(strongest.currentLevel).toFixed(1)}/10` : ""}
               </span>
             )}
           </div>
@@ -184,9 +187,9 @@ export default function TopicSummaryHeader({ dsaData, targetCompany = "", target
               <AlertCircle className="w-3.5 h-3.5" />
               Priority Focus Area
             </span>
-            {weakest?.gap !== null && weakest?.gap !== undefined && (
+            {hasFiniteNumber(weakest?.gap) && (
               <span className="text-[10px] font-mono font-black text-[#0D0431] px-2 py-0.5 rounded-full bg-white border border-[#0D0431]">
-                {weakest.gap < 0 ? `${weakest.gap.toFixed(1)} Gap` : "Target Met"}
+                {Number(weakest.gap) < 0 ? `${Number(weakest.gap).toFixed(1)} Gap` : "Target Met"}
               </span>
             )}
           </div>
@@ -195,8 +198,8 @@ export default function TopicSummaryHeader({ dsaData, targetCompany = "", target
             <div>
               <div className="text-sm font-heading font-black text-[#0D0431]">{weakest.name}</div>
               <div className="text-[11px] text-[#0D0431]/75 font-mono font-semibold mt-0.5">
-                Level: {weakest.currentLevel !== null ? weakest.currentLevel.toFixed(1) : "—"} · Req:{" "}
-                {weakest.requiredLevel !== null ? weakest.requiredLevel.toFixed(1) : "—"}
+                Level: {hasFiniteNumber(weakest.currentLevel) ? Number(weakest.currentLevel).toFixed(1) : "—"} · Req:{" "}
+                {hasFiniteNumber(weakest.requiredLevel) ? Number(weakest.requiredLevel).toFixed(1) : "—"}
               </div>
             </div>
           ) : (
